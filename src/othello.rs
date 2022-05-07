@@ -14,6 +14,7 @@ pub struct Othello {
     board: Board<BOARD_WIDTH, BOARD_HEIGHT>,
     current: Player,
     cursor: Position,
+    scores: [usize; 2],
 }
 
 impl Othello {
@@ -45,6 +46,7 @@ impl Othello {
             board,
             current: Player::Black,
             cursor: Position { x: 0, y: 0 },
+            scores: [2, 2],
         }
     }
 
@@ -84,12 +86,18 @@ impl Othello {
                         );
 
                         match result {
-                            Ok(_) => {
-                                self.current = match self.current {
-                                    Player::Black => Player::White,
-                                    Player::White => Player::Black,
-                                };
-                            }
+                            Ok(num_enemies_trapped) => match self.current {
+                                Player::Black => {
+                                    self.scores[0] += num_enemies_trapped + 1;
+                                    self.scores[1] -= num_enemies_trapped;
+                                    self.current = Player::White;
+                                }
+                                Player::White => {
+                                    self.scores[1] += num_enemies_trapped + 1;
+                                    self.scores[0] -= num_enemies_trapped;
+                                    self.current = Player::Black;
+                                }
+                            },
                             Err(err) => error = Some(err),
                         }
                     }
@@ -144,6 +152,14 @@ impl Othello {
             }
             queue!(stdout, Print("\r\n"))?;
         }
+
+        queue!(
+            stdout,
+            Print(format!(
+                "Black: {}, White: {}\r\n",
+                self.scores[0], self.scores[1]
+            ))
+        )?;
 
         queue!(stdout, Print(format!("{:?}'s Turn.\r\n", self.current)))?;
 
