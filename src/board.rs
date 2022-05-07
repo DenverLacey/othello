@@ -21,7 +21,7 @@ impl<const W: usize, const H: usize> Board<W, H> {
 
     pub fn place(&mut self, x: isize, y: isize, tile: Tile) -> Result<usize, String> {
         if self.get(x as usize, y as usize) != Tile::Empty {
-            return Err("Cannot place a tile here!".to_string());
+            return Err("Tile is already occupied!".to_string());
         }
 
         let enemies = self.find_trapped_enemies(tile, x, y);

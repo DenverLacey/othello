@@ -156,12 +156,16 @@ impl Othello {
         queue!(
             stdout,
             Print(format!(
-                "Black: {}, White: {}\r\n",
-                self.scores[0], self.scores[1]
+                "{}: {}, {}: {}\r\n",
+                Into::<char>::into(Tile::Black),
+                self.scores[0],
+                Into::<char>::into(Tile::White),
+                self.scores[1]
             ))
         )?;
 
-        queue!(stdout, Print(format!("{:?}'s Turn.\r\n", self.current)))?;
+        let c: char = Into::<Tile>::into(self.current).into();
+        queue!(stdout, Print(format!("{}'s Turn.\r\n", c)))?;
 
         if let Some(err) = error {
             queue!(
