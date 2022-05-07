@@ -107,7 +107,7 @@ impl Othello {
                         }
                     }
                     KeyCode::Down => {
-                        if self.cursor.y < BOARD_HEIGHT - 1 {
+                        if self.cursor.y < (BOARD_HEIGHT as isize) - 1 {
                             self.cursor.y += 1;
                         }
                     }
@@ -117,7 +117,7 @@ impl Othello {
                         }
                     }
                     KeyCode::Right => {
-                        if self.cursor.x < BOARD_WIDTH - 1 {
+                        if self.cursor.x < (BOARD_WIDTH as isize) - 1 {
                             self.cursor.x += 1;
                         }
                     }
@@ -134,8 +134,8 @@ impl Othello {
     fn draw(&self, stdout: &mut Stdout, error: &Option<String>) -> std::io::Result<()> {
         queue!(stdout, Clear(ClearType::All), MoveTo(0, 0))?;
 
-        for y in 0..BOARD_HEIGHT {
-            for x in 0..BOARD_WIDTH {
+        for y in 0..BOARD_HEIGHT as isize {
+            for x in 0..BOARD_WIDTH as isize {
                 let tile = self.board.get(x, y);
                 let c: char = tile.into();
                 if x == self.cursor.x && y == self.cursor.y {

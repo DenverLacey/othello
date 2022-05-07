@@ -11,8 +11,8 @@ impl<const W: usize, const H: usize> Board<W, H> {
         }
     }
 
-    pub fn get(&self, x: usize, y: usize) -> Tile {
-        self.tiles[y][x]
+    pub fn get(&self, x: isize, y: isize) -> Tile {
+        self.tiles[y as usize][x as usize]
     }
 
     pub fn set(&mut self, x: isize, y: isize, tile: Tile) {
@@ -20,7 +20,7 @@ impl<const W: usize, const H: usize> Board<W, H> {
     }
 
     pub fn place(&mut self, x: isize, y: isize, tile: Tile) -> Result<usize, String> {
-        if self.get(x as usize, y as usize) != Tile::Empty {
+        if self.get(x, y) != Tile::Empty {
             return Err("Tile is already occupied!".to_string());
         }
 
@@ -56,7 +56,7 @@ impl<const W: usize, const H: usize> Board<W, H> {
                     continue;
                 }
 
-                let neighbour = self.get(nx as usize, ny as usize);
+                let neighbour = self.get(nx, ny);
                 if neighbour == friend || neighbour == Tile::Empty {
                     continue;
                 }
@@ -81,17 +81,14 @@ impl<const W: usize, const H: usize> Board<W, H> {
         let mut found_friend = false;
 
         while (x >= 0 && (x as usize) < W) && (y >= 0 && (y as usize) < H) {
-            let tile = self.get(x as usize, y as usize);
+            let tile = self.get(x, y);
             if tile == friend {
                 found_friend = true;
                 break;
             } else if tile == Tile::Empty {
                 break;
             } else {
-                enemies.push(Position {
-                    x: x as usize,
-                    y: y as usize,
-                });
+                enemies.push(Position { x, y });
             }
 
             x += dx;
@@ -123,6 +120,6 @@ impl From<Tile> for char {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Position {
-    pub x: usize,
-    pub y: usize,
+    pub x: isize,
+    pub y: isize,
 }
