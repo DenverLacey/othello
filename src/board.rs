@@ -32,7 +32,7 @@ impl<const W: usize, const H: usize> Board<W, H> {
         }
 
         for e in enemies {
-            self.set(e.x as isize, e.y as isize, tile);
+            self.set(e.x, e.y, tile);
         }
 
         self.set(x, y, tile);

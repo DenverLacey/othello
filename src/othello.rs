@@ -72,8 +72,8 @@ impl Othello {
         loop {
             let event = crossterm::event::read()?;
             error = None;
-            match event {
-                Event::Key(key_event) => match key_event.code {
+            if let Event::Key(key_event) = event {
+                match key_event.code {
                     KeyCode::Char('q') => {
                         execute!(stdout, Clear(ClearType::All), MoveTo(0, 0))?;
                         break;
@@ -122,8 +122,7 @@ impl Othello {
                         }
                     }
                     _ => {}
-                },
-                _ => {}
+                }
             }
             self.draw(stdout, &error)?;
         }
