@@ -40,6 +40,26 @@ impl<const W: usize, const H: usize> Board<W, H> {
         Ok(num_enemies_trapped)
     }
 
+    pub fn player_has_legal_move(&mut self, tile: Tile) -> bool {
+        for y in 0..H {
+            for x in 0..W {
+                let x = x as isize;
+                let y = y as isize;
+
+                if self.get(x, y) != Tile::Empty {
+                    continue;
+                }
+
+                let enemies = self.find_trapped_enemies(tile, x, y);
+                if !enemies.is_empty() {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
     fn find_trapped_enemies(&self, friend: Tile, x: isize, y: isize) -> Vec<Position> {
         let mut enemies = vec![];
 

@@ -2,7 +2,7 @@ use crate::board::*;
 
 use crossterm::cursor::MoveTo;
 use crossterm::event::{Event, KeyCode};
-use crossterm::style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor};
+use crossterm::style::{Attribute, Color, Print, ResetColor, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::{execute, queue};
 use std::io::{stdout, Stdout, Write};
@@ -76,7 +76,7 @@ impl Othello {
                 match key_event.code {
                     KeyCode::Char('q') => {
                         execute!(stdout, Clear(ClearType::All), MoveTo(0, 0))?;
-                        break;
+                        return Ok(());
                     }
                     KeyCode::Enter => {
                         let result = self.board.place(
@@ -86,18 +86,24 @@ impl Othello {
                         );
 
                         match result {
-                            Ok(num_enemies_trapped) => match self.current {
-                                Player::Black => {
-                                    self.scores[0] += num_enemies_trapped + 1;
-                                    self.scores[1] -= num_enemies_trapped;
-                                    self.current = Player::White;
+                            Ok(num_enemies_trapped) => {
+                                match self.current {
+                                    Player::Black => {
+                                        self.scores[0] += num_enemies_trapped + 1;
+                                        self.scores[1] -= num_enemies_trapped;
+                                        self.current = Player::White;
+                                    }
+                                    Player::White => {
+                                        self.scores[1] += num_enemies_trapped + 1;
+                                        self.scores[0] -= num_enemies_trapped;
+                                        self.current = Player::Black;
+                                    }
                                 }
-                                Player::White => {
-                                    self.scores[1] += num_enemies_trapped + 1;
-                                    self.scores[0] -= num_enemies_trapped;
-                                    self.current = Player::Black;
+
+                                if !self.board.player_has_legal_move(self.current.into()) {
+                                    break;
                                 }
-                            },
+                            }
                             Err(err) => error = Some(err),
                         }
                     }
@@ -127,6 +133,18 @@ impl Othello {
             self.draw(stdout, &error)?;
         }
 
+        self.draw(stdout, &error)?;
+
+        let winner = if self.scores[0] > self.scores[1] {
+            Some(Player::Black)
+        } else if self.scores[0] < self.scores[1] {
+            Some(Player::White)
+        } else {
+            None
+        };
+
+        self.draw_winner_message(stdout, winner)?;
+
         Ok(())
     }
 
@@ -140,9 +158,12 @@ impl Othello {
                 if x == self.cursor.x && y == self.cursor.y {
                     queue!(
                         stdout,
-                        SetBackgroundColor(Color::White),
-                        Print(format!("{}", c)),
-                        ResetColor,
+                        Print(format!(
+                            "{}{}{}",
+                            Attribute::Reverse,
+                            c,
+                            Attribute::NoReverse
+                        )),
                         Print(" "),
                     )?;
                 } else {
@@ -156,14 +177,14 @@ impl Othello {
             stdout,
             Print(format!(
                 "{}: {}, {}: {}\r\n",
-                Into::<char>::into(Tile::Black),
+                char::from(Tile::Black),
                 self.scores[0],
-                Into::<char>::into(Tile::White),
+                char::from(Tile::White),
                 self.scores[1]
             ))
         )?;
 
-        let c: char = Into::<Tile>::into(self.current).into();
+        let c: char = Tile::from(self.current).into();
         queue!(stdout, Print(format!("{}'s Turn.\r\n", c)))?;
 
         if let Some(err) = error {
@@ -176,6 +197,25 @@ impl Othello {
         }
 
         stdout.flush()
+    }
+
+    fn draw_winner_message(
+        &mut self,
+        stdout: &mut Stdout,
+        winner: Option<Player>,
+    ) -> std::io::Result<()> {
+        let msg = if let Some(winner) = winner {
+            let c: char = Tile::from(winner).into();
+            format!("{} is the winner!\r\n", c)
+        } else {
+            "It's a draw!\r\n".into()
+        };
+        execute!(
+            stdout,
+            SetForegroundColor(Color::Yellow),
+            Print(msg),
+            ResetColor,
+        )
     }
 }
 
